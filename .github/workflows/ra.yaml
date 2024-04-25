@@ -10,8 +10,8 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v2
-            - name: Check S3 buckets
-              run: aws s3 ls
+            - name: validate
+              run: aws cloudformation validate-template --template-body file://template.yaml
               env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
                 AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
