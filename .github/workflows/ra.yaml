@@ -38,13 +38,9 @@ jobs:
         needs: [deploy]
         steps:
             - name: github script
-              uses: actions/github-script@v5
-              with:
-                github-token: ${{secrets.GITHUB_TOKEN}}
-                script: |
-                    github.rest.issues.createComment({
-                        issue_number: context.issue.number,
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        body: 'Hello World!'
-                    })
+              run: |
+                # Use GitHub API to create a comment on the PR
+                GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+                COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
+      
+                curl -s -H "Authorization: token ${GITHUB_TOKEN}" -X POST $COMMENT_URL -d "{\"body\":\"Hello World\"}"
