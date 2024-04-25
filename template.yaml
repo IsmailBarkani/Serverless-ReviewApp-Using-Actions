@@ -30,7 +30,7 @@ Resources:
         ConnectionType: INTERNET
         IntegrationResponses:
           - ResponseTemplates:
-              application/json: "{\"message\": \"111\"}"
+              application/json: "{\"message\": \"222\"}"
             SelectionPattern: '2\d{2}'
             StatusCode: 200
           - ResponseTemplates:
@@ -68,7 +68,7 @@ Resources:
       RestApiId: !Ref ApiGateway
       StageName: 'v0'
 
-  ApiGatewayDeployment1:
+  ApiGatewayDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn: ApiGatewayGETMethod
     Properties:
