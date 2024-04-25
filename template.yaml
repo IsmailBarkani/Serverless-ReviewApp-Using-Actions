@@ -68,7 +68,7 @@ Resources:
       RestApiId: !Ref ApiGateway
       StageName: 'v0'
 
-  ApiGatewayDeployment:
+  ApiGatewayDeployment1:
     Type: AWS::ApiGateway::Deployment
     DependsOn: ApiGatewayGETMethod
     Properties:
