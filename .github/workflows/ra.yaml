@@ -38,7 +38,7 @@ jobs:
         needs: [deploy]
         steps:
             - name: github script
-              uses: actions/github-script@v7
+              uses: actions/github-script@v5
               with:
                 github-token: ${{secrets.GITHUB_TOKEN}}
                 script: |
