@@ -38,14 +38,15 @@ jobs:
         needs: [deploy]
         steps:
             - name: github script
-              run: |
-                # Use GitHub API to create a comment on the PR
-                GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-                COMMENT= $(aws cloudformation --region us-east-1 describe-stacks --stack-name rest-api)
-                COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
-      
-                curl -s -H "Authorization: token ${GITHUB_TOKEN}" -X POST $COMMENT_URL -d "{\"body\":\"$COMMENT\"}"
               env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
                 AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
                 AWS_DEFAULT_REGION: 'us-east-1'
+              run: |
+                # Use GitHub API to create a comment on the PR
+                GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+                STACK_DESCRIPTION= $(aws cloudformation --region us-east-1 describe-stacks --stack-name rest-api)
+                COMMENT= "${STACK_DESCRIPTION}"
+                COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
+      
+                curl -s -H "Authorization: token ${GITHUB_TOKEN}" -X POST $COMMENT_URL -d "{\"body\":\"$COMMENT\"}"
