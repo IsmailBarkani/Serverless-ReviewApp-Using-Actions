@@ -74,3 +74,8 @@ Resources:
     Properties:
       Description: Mock API Deployment
       RestApiId: !Ref ApiGateway
+
+Outputs:
+  APIGWID:
+    Description: API gateway Id
+    Value: !Ref ApiGateway
