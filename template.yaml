@@ -15,7 +15,7 @@ Resources:
       Code:
         ZipFile: tradingNewsLambda-package.zip 
       Runtime: python3.10
-      Description: lambda function to retrieve latest trading news
+      Description: lambda function to retrieve latest trading  news
       FunctionName: !Ref LambdaFunctionName
       Handler: tradingNews-lambda.lambda_handler
       MemorySize: 256
