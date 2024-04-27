@@ -17,7 +17,7 @@ jobs:
                 pip install -r lambdas/requirements.txt --platform manylinux2014_x86_64 --target tradingNewsLambda-package --only-binary=:all:
             - name: prepare the package
               run: |
-                #prepare the artifcat
+                # prepare the artifcat
                 cp lambdas/tradingNews-lambda.py tradingNewsLambda-package/tradingNews-lambda.py
                 cd tradingNewsLambda-package
                 zip -r tradingNewsLambda-package.zip .

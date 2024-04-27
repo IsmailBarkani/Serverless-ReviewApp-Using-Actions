@@ -70,6 +70,13 @@ Resources:
       ParentId:  !GetAtt ApiGateway.RootResourceId
       PathPart: random-number
       RestApiId: !Ref ApiGateway
+  
+  ApiGatewayResourceNews:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:  !GetAtt ApiGateway.RootResourceId
+      PathPart: trading-news
+      RestApiId: !Ref ApiGateway
 
   ApiGatewayGETMethod:
     Type: AWS::ApiGateway::Method
@@ -78,38 +85,13 @@ Resources:
       AuthorizationType: NONE
       HttpMethod: GET
       Integration:
-        ConnectionType: INTERNET
-        IntegrationResponses:
-          - ResponseTemplates:
-              application/json: "{\"message\": \"222\"}"
-            SelectionPattern: '2\d{2}'
-            StatusCode: 200
-          - ResponseTemplates:
-              application/json: "{\"message\": \"Internal Server Error\"}"
-            SelectionPattern: '5\d{2}'
-            StatusCode: 500
-        PassthroughBehavior: WHEN_NO_TEMPLATES
-        RequestTemplates:
-          application/json: "{\"statusCode\": $input.json('$.statusCode'), \"message\": $input.json('$.message')}"
-        Type: MOCK
-        TimeoutInMillis: 29000
-      MethodResponses:
-        - ResponseModels:
-            application/json: !Ref ApiGatewayModel
-          StatusCode: 200
-        - ResponseModels:
-            application/json: !Ref ApiGatewayModel
-          StatusCode: 500
-      OperationName: 'mock'
-      ResourceId: !Ref ApiGatewayResourceRandom
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations
+          - LambdaArn: !GetAtt LambdaFunction.Arn
+      ResourceId: !Ref ApiGatewayResourceNews
       RestApiId: !Ref ApiGateway
-
-  ApiGatewayModel:
-    Type: AWS::ApiGateway::Model
-    Properties:
-      ContentType: 'application/json'
-      RestApiId: !Ref ApiGateway
-      Schema: {}
   
   ApiGatewayStage:
     Type: AWS::ApiGateway::Stage
@@ -125,6 +107,14 @@ Resources:
     Properties:
       Description: Mock API Deployment
       RestApiId: !Ref ApiGateway
+
+  LambdaApiGatewayInvoke:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt LambdaFunction.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*/
 
 Outputs:
   APIGWID:
