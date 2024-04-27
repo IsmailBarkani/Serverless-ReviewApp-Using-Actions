@@ -57,6 +57,11 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v2
+            - name: download load package
+              uses: actions/download-artifact@v4
+              with:
+                name: tradingNewsLambda-package
+                path: .
             - name: deploy
               run: aws cloudformation deploy  --stack-name rest-api --template-file template.yaml --capabilities CAPABILITY_IAM
               env:
