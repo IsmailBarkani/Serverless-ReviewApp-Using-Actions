@@ -5,6 +5,12 @@ Parameters:
   LambdaFunctionName:
     Type: String
     Default: tradingNews-lambda
+  PackageBucketName:
+    Type: String
+    Default: oncobe-cf-packages
+  TradingFunctionPackage:
+    Type: String
+    Default: lambdas/tradingNewsLambda-package.zip
 
 Resources:
 
@@ -13,9 +19,10 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       Code:
-        ZipFile: tradingNewsLambda-package.zip 
+        S3Bucket: !Ref PackageBucketName
+        S3Key: !Ref TradingFunctionPackage
       Runtime: python3.10
-      Description: lambda function to retrieve latest trading news
+      Description: lambda function  to retrieve latest trading news
       FunctionName: !Ref LambdaFunctionName
       Handler: tradingNews-lambda.lambda_handler
       MemorySize: 256
