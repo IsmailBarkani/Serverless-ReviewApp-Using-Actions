@@ -19,13 +19,14 @@ jobs:
                 
                 #prepare the artifcat
                 cp lambdas/tradingNews-lambda.py tradingNewsLambda-package/tradingNews-lambda.py
-                zip -r tradingNewsLambda-package.zip tradingNewsLambda-package/
+                cd tradingNewsLambda-package
+                zip -r tradingNewsLambda-package.zip .
 
             - name: upload artifact
               uses: actions/upload-artifact@v4
               with:
                 name: tradingNewsLambda-package
-                path: tradingNewsLambda-package.zip 
+                path: tradingNewsLambda-package/tradingNewsLambda-package.zip 
                 if-no-files-found: error
 
     validation:
