@@ -57,7 +57,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
             - name: deploy
-              run: aws cloudformation deploy  --stack-name rest-api --template-file template.yaml
+              run: aws cloudformation deploy  --stack-name rest-api --template-file template.yaml --capabilities CAPABILITY_IAM
               env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
                 AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
