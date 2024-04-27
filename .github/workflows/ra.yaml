@@ -2,17 +2,25 @@ name: ReviewAPP
 on: 
     pull_request
 
-
 jobs:
+    build:
+        name: build the project
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+            - name: build
+              run: python --verision
+
     validation:
         name: validate cloudformation template
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+            uses: actions/checkout@v2
             - name: validate
-              run: aws cloudformation validate-template --template-body file://template.yaml
-              env:
+            run: aws cloudformation validate-template --template-body file://template.yaml
+            env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
                 AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
                 AWS_DEFAULT_REGION: 'us-east-1'
@@ -30,7 +38,6 @@ jobs:
                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
                 AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
                 AWS_DEFAULT_REGION: 'us-east-1'
-
 
     output:
         name: display the output of the deployment
