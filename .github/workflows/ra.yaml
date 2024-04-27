@@ -10,7 +10,13 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
             - name: build
-              run: python --version
+              run: |
+                # check py version
+                python --version
+                
+                # compile the project
+                pip install -r lambdas/requirements.txt --platform manylinux2014_x86_64 --target tradingNewsLambda-package --only-binary=:all:
+                
 
     validation:
         name: validate cloudformation template
