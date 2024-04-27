@@ -9,19 +9,26 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v2
-            - name: compile
+            - name: build
               run: |
                 # check py version
                 python --version
+
                 # compile the project
                 pip install -r lambdas/requirements.txt --platform manylinux2014_x86_64 --target tradingNewsLambda-package --only-binary=:all:
-            - name: prepare the package
-              run: |
-                # prepare the artifcat
+                
+                #prepare the artifcat
                 cp lambdas/tradingNews-lambda.py tradingNewsLambda-package/tradingNews-lambda.py
                 cd tradingNewsLambda-package
                 zip -r tradingNewsLambda-package.zip .
                 aws s3 cp tradingNewsLambda-package.zip s3://oncobe-cf-packages/lambdas/tradingNewsLambda-package.zip
+
+            - name: upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: tradingNewsLambda-package
+                path: tradingNewsLambda-package/tradingNewsLambda-package.zip 
+                if-no-files-found: error
 
     validation:
         name: validate cloudformation template
@@ -30,6 +37,11 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v2
+            - name: download load package
+              uses: actions/download-artifact@v4
+              with:
+                name: tradingNewsLambda-package
+                path: .
             - name: display package
               run: ls
             - name: validate
@@ -46,6 +58,11 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v2
+            - name: download load package
+              uses: actions/download-artifact@v4
+              with:
+                name: tradingNewsLambda-package
+                path: .
             - name: deploy
               run: aws cloudformation deploy  --stack-name rest-api --template-file template.yaml --capabilities CAPABILITY_IAM
               env:
