@@ -13,10 +13,17 @@ jobs:
               run: |
                 # check py version
                 python --version
-                
+
                 # compile the project
                 pip install -r lambdas/requirements.txt --platform manylinux2014_x86_64 --target tradingNewsLambda-package --only-binary=:all:
                 
+                #prepare the artifcat
+                cp lambdas/tradingNews-lambda.py tradingNewsLambda-package/tradingNews-lambda.py
+            - name: upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: tradingNewsLambda-package
+                path: tradingNewsLambda-package/**
 
     validation:
         name: validate cloudformation template
@@ -24,6 +31,13 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v2
+            - name: download load package
+              uses: actions/download-artifact@v4
+              with:
+                - name: tradingNewsLambda-package
+                  path: .
+            - name: display package
+              run: ls
             - name: validate
               run: aws cloudformation validate-template --template-body file://template.yaml
               env:
