@@ -10,7 +10,7 @@ Parameters:
     Default: oncobe-cf-packages
   TradingFunctionPackage:
     Type: String
-    Default: lambdas/tradingNewsLambda-package.zip
+    Default: lambdas/tradingNewsLambda-packages.zip
 
 Resources:  
   LambdaFunction:
