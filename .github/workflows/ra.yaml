@@ -20,6 +20,7 @@ jobs:
                 # prepare the artifcat
                 cp lambdas/tradingNews-lambda.py tradingNewsLambda-package/tradingNews-lambda.py
                 cd tradingNewsLambda-package
+                ls
                 zip -r tradingNewsLambda-package.zip .
                 aws s3 cp tradingNewsLambda-package.zip s3://oncobe-cf-packages/lambdas/tradingNewsLambda-package.zip
               env:
