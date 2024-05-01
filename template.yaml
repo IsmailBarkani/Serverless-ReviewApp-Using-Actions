@@ -25,7 +25,7 @@ Resources:
       Handler: tradingNews-lambda.lambda_handler
       MemorySize: 256
       Role: !GetAtt LambdaIAMRole.Arn
-      Timeout: 60
+      Timeout: 30
 
   LambdaIAMRole:
     Type: AWS::IAM::Role
