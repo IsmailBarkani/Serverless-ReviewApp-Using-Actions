@@ -12,9 +12,7 @@ Parameters:
     Type: String
     Default: lambdas/tradingNewsLambda-package.zip
 
-Resources:
-
-  
+Resources:  
   LambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
