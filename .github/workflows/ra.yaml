@@ -41,7 +41,7 @@ jobs:
             - name: validate
               run: |
                 #replace the deployment logical id with a random number in order to redeploy the stage
-                sed -i 's/ApiGatewayDeployment/ApiGatewayDeployment${{github_sha}}/g' template.yaml
+                sed -i 's/ApiGatewayDeployment/ApiGatewayDeployment${{github.sha}}/g' template.yaml
                 aws cloudformation validate-template --template-body file://template.yaml
               env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
@@ -61,7 +61,7 @@ jobs:
                 ZIP_FILE_NAME="lambdas/tradingNewsLambda/${{ github.sha }}.zip"
                 ENV=${{github_ref#refs/heads/}}
                 #replace the deployment logical id with a random number in order to redeploy the stage
-                sed -i 's/ApiGatewayDeployment/ApiGatewayDeployment${{github_sha}}/g' template.yaml
+                sed -i 's/ApiGatewayDeployment/ApiGatewayDeployment${{github.sha}}/g' template.yaml
                 echo "{ \"Parameters\": { \"TradingFunctionPackage\": \"${ZIP_FILE_NAME}\", \"Env\": \"${ENV}\" } }" > parameters.json
                 aws cloudformation deploy  --stack-name "rest-api-${ENV}" --template-file template.yaml --capabilities CAPABILITY_IAM --parameter-overrides file://parameters.json
               env:
