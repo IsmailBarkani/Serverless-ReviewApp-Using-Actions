@@ -53,7 +53,11 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
             - name: deploy
-              run: aws cloudformation deploy  --stack-name rest-api --template-file template.yaml --capabilities CAPABILITY_IAM
+              run: |
+                #Prepare Env variables
+                ZIP_FILE_NAME="lambdas/tradingNewsLambda/${{ github.sha }}.zip"
+                echo "{ \"Parameters\": { \"TradingFunctionPackage\": \"${ZIP_FILE_NAME}\" } }" > parameters.json
+                aws cloudformation deploy  --stack-name rest-api --template-file template.yaml --capabilities CAPABILITY_IAM --parameter-overrides file://parameters.json
               env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
                 AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
@@ -72,10 +76,7 @@ jobs:
               run: |
                 # Use GitHub API to create a comment on the PR
                 GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-                #Prepare Env variables
-                ZIP_FILE_NAME="lambdas/tradingNewsLambda/${{ github.sha }}.zip"
-                echo "{ \"Parameters\": { \"TradingFunctionPackage\": \"${ZIP_FILE_NAME}\" } }" > parameters.json
-                REST_API_ID=$(aws cloudformation --region us-east-1 describe-stacks --stack-name rest-api --query Stacks[0].Outputs[0].OutputValue --output text --parameter-overrides file://parameters.json )
+                REST_API_ID=$(aws cloudformation --region us-east-1 describe-stacks --stack-name rest-api --query Stacks[0].Outputs[0].OutputValue --output text )
                 COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
       
                 curl -s -H "Authorization: token ${GITHUB_TOKEN}" -X POST $COMMENT_URL -d "{\"body\":\"API gateway URL: https://${REST_API_ID}.execute-api.us-east-1.amazonaws.com\"}"
