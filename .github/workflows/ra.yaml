@@ -59,7 +59,7 @@ jobs:
               run: |
                 #Prepare Env variables
                 ZIP_FILE_NAME="lambdas/tradingNewsLambda/${{ github.sha }}.zip"
-                ENV=${{github_ref#refs/heads/}}
+                ENV=${GITHUB_REF#refs/heads/}
                 #replace the deployment logical id with a random number in order to redeploy the stage
                 sed -i 's/ApiGatewayDeployment/ApiGatewayDeployment${{github.sha}}/g' template.yaml
                 echo "{ \"Parameters\": { \"TradingFunctionPackage\": \"${ZIP_FILE_NAME}\", \"Env\": \"${ENV}\" } }" > parameters.json
