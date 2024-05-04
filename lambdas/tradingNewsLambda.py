@@ -7,7 +7,6 @@ TRADING_NEWS_API_URL=os.environ["TRADING_NEWS_API_URL"]
 TRADING_NEWS_API_KEY=os.environ["TRADING_NEWS_API_KEY"]
 logging.getLogger().setLevel(logging.INFO)
 
-
 def lambda_handler(event, context):
     try:
         '''
@@ -22,9 +21,6 @@ def lambda_handler(event, context):
         logging.error(f"Internal error with: {err}")
         logging.info(f"Handler Finishes")
         return setLambdaFunctionResponse("Internal failure, please contact the administration", "INTERNAL_FAILURE", 500)
-    
-
-
 
 def tradingNews():
     '''

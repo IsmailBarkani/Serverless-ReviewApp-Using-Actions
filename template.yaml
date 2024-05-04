@@ -16,6 +16,8 @@ Parameters:
   TradingAPIKey:
     Type: String
     Default: 3fb2350dd0msh962751bd232e22ep141805jsnd4607e8a45ef
+  Env:
+    Type: String
 
 Resources:  
   LambdaFunction:
@@ -26,7 +28,7 @@ Resources:
         S3Key: !Ref TradingFunctionPackage
       Runtime: python3.10
       Description: lambda function  to retrieve latest trading  news
-      FunctionName: !Ref LambdaFunctionName
+      FunctionName: !Sub ${LambdaFunctionName}-${Env}
       Handler: tradingNewsLambda.lambda_handler
       MemorySize: 256
       Role: !GetAtt LambdaIAMRole.Arn
@@ -58,7 +60,7 @@ Resources:
                   - logs:PutLogEvents
                 Effect: Allow
                 Resource:
-                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${LambdaFunctionName}:*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${LambdaFunctionName-${Env}:*
           PolicyName: lambda
   
   ApiGateway:
@@ -71,13 +73,6 @@ Resources:
           - EDGE
       ApiKeySourceType: HEADER
 
-  ApiGatewayResourceRandom:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId:  !GetAtt ApiGateway.RootResourceId
-      PathPart: random-number
-      RestApiId: !Ref ApiGateway
-  
   ApiGatewayResourceNews:
     Type: AWS::ApiGateway::Resource
     Properties:
