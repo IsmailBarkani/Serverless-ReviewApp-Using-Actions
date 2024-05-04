@@ -22,7 +22,7 @@ Resources:
       Runtime: python3.10
       Description: lambda function  to retrieve latest trading  news
       FunctionName: !Ref LambdaFunctionName
-      Handler: tradingNews-lambda.lambda_handler
+      Handler: tradingNewsLambda.lambda_handler
       MemorySize: 256
       Role: !GetAtt LambdaIAMRole.Arn
       Timeout: 30

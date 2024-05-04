@@ -18,7 +18,7 @@ jobs:
             - name: prepare the package
               run: |
                 # prepare the artifcat
-                cp lambdas/tradingNews-lambda.py tradingNewsLambda-package/tradingNews-lambda.py
+                cp lambdas/tradingNewsLambda.py tradingNewsLambda-package/tradingNewsLambda.py
                 cd tradingNewsLambda-package
                 ls
                 zip -r tradingNewsLambda-package.zip .
