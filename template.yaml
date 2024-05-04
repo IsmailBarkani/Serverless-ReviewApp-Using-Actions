@@ -10,6 +10,12 @@ Parameters:
     Default: oncobe-cf-packages
   TradingFunctionPackage:
     Type: String
+  TradingAPIURL:
+    Type: String
+    Default: https://trading-view.p.rapidapi.com/news/list
+  TradingAPIKey:
+    Type: String
+    Default: 3fb2350dd0msh962751bd232e22ep141805jsnd4607e8a45ef
 
 Resources:  
   LambdaFunction:
@@ -25,6 +31,10 @@ Resources:
       MemorySize: 256
       Role: !GetAtt LambdaIAMRole.Arn
       Timeout: 30
+      Environment:
+        Variables:
+          TRADING_NEWS_API_URL: !Ref TradingAPIURL
+          TRADING_NEWS_API_KEY: !Ref TradingAPIKey
 
   LambdaIAMRole:
     Type: AWS::IAM::Role
