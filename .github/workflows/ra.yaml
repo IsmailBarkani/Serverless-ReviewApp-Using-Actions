@@ -82,7 +82,8 @@ jobs:
               run: |
                 # Use GitHub API to create a comment on the PR
                 GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-                REST_API_ID=$(aws cloudformation --region us-east-1 describe-stacks --stack-name rest-api --query Stacks[0].Outputs[0].OutputValue --output text )
+                ENV=$(echo ${{github.head_ref}}  | sed 's/\//-/g')
+                REST_API_ID=$(aws cloudformation --region us-east-1 describe-stacks --stack-name "rest-api-${ENV}" --query Stacks[0].Outputs[0].OutputValue --output text )
                 COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
       
                 curl -s -H "Authorization: token ${GITHUB_TOKEN}" -X POST $COMMENT_URL -d "{\"body\":\"API gateway URL: https://${REST_API_ID}.execute-api.us-east-1.amazonaws.com\"}"
