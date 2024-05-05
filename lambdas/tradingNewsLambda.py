@@ -77,7 +77,7 @@ def setLambdaFunctionResponse(ResponseBody, ResponseCode, httpStatusCode):
     return {
         "isBase64Encoded": False,
         "statusCode": httpStatusCode,
-        "body": setResponseBody(ResponseBody, ResponseCode, httpStatusCode)
+        "body": json.dumps(setResponseBody(ResponseBody, ResponseCode, httpStatusCode))
     }
 
 def setResponseBody(ResponseBody, ResponseCode, httpStatusCode):
