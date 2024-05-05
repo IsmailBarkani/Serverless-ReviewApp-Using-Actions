@@ -1,0 +1,89 @@
+name: ReviewAPP
+on: 
+    pull_request
+
+jobs:
+    build:
+        name: build the project
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+            - name: compile
+              run: |
+                # check py version
+                python --version
+                # compile the project
+                pip install -r lambdas/requirements.txt --platform manylinux2014_x86_64 --target tradingNewsLambda-package --only-binary=:all:
+            - name: prepare the package
+              run: |
+                # prepare the artifcat
+                cp lambdas/tradingNewsLambda.py tradingNewsLambda-package/tradingNewsLambda.py
+                cd tradingNewsLambda-package
+                ls
+                COMMIT_SHA=${{ github.sha }}
+                zip -r ${COMMIT_SHA}.zip .
+                aws s3 cp ${COMMIT_SHA}.zip s3://oncobe-cf-packages/lambdas/tradingNewsLambda/${COMMIT_SHA}.zip
+              env:
+                 AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+                 AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+                 AWS_DEFAULT_REGION: 'us-east-1'
+
+    validation:
+        name: validate cloudformation template
+        runs-on: ubuntu-latest
+        needs: [build]
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+            - name: display package
+              run: ls
+            - name: validate
+              run: |
+                #replace the deployment logical id with a random number in order to redeploy the stage
+                sed -i 's/ApiGatewayDeployment/ApiGatewayDeployment${{github.sha}}/g' template.yaml
+                aws cloudformation validate-template --template-body file://template.yaml
+              env:
+                AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+                AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+                AWS_DEFAULT_REGION: 'us-east-1'
+
+    deploy:
+        name: deploy cloudformation template
+        runs-on: ubuntu-latest
+        needs: [validation]
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+            - name: deploy
+              run: |
+                #Prepare Env variables
+                ZIP_FILE_NAME="lambdas/tradingNewsLambda/${{ github.sha }}.zip"
+                ENV=$(echo ${{github.head_ref}}  | sed 's/\//-/g')
+                #replace the deployment logical id with a random number in order to redeploy the stage
+                sed -i 's/ApiGatewayDeployment/ApiGatewayDeployment${{github.sha}}/g' template.yaml
+                echo "{ \"Parameters\": { \"TradingFunctionPackage\": \"${ZIP_FILE_NAME}\", \"Env\": \"${ENV}\" } }" > parameters.json
+                aws cloudformation deploy  --stack-name "rest-api-${ENV}" --template-file template.yaml --capabilities CAPABILITY_IAM --parameter-overrides file://parameters.json
+              env:
+                AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+                AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+                AWS_DEFAULT_REGION: 'us-east-1'
+
+    output:
+        name: display the output of the deployment
+        runs-on: ubuntu-latest
+        needs: [deploy]
+        steps:
+            - name: github script
+              env:
+                AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+                AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+                AWS_DEFAULT_REGION: 'us-east-1'
+              run: |
+                # Use GitHub API to create a comment on the PR
+                GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+                ENV=$(echo ${{github.head_ref}}  | sed 's/\//-/g')
+                REST_API_ID=$(aws cloudformation --region us-east-1 describe-stacks --stack-name "rest-api-${ENV}" --query Stacks[0].Outputs[0].OutputValue --output text )
+                COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
+      
+                curl -s -H "Authorization: token ${GITHUB_TOKEN}" -X POST $COMMENT_URL -d "{\"body\":\"API gateway URL: https://${REST_API_ID}.execute-api.us-east-1.amazonaws.com\"}"

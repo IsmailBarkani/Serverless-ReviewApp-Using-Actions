@@ -1,0 +1,148 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: REST API
+
+Parameters:
+  LambdaFunctionName:
+    Type: String
+    Default: tradingNews-lambda
+  PackageBucketName:
+    Type: String
+    Default: oncobe-cf-packages
+  TradingFunctionPackage:
+    Type: String
+  TradingAPIURL:
+    Type: String
+    Default: https://trading-view.p.rapidapi.com/news/list
+  TradingAPIKey:
+    Type: String
+    Default: 3fb2350dd0msh962751bd232e22ep141805jsnd4607e8a45ef
+  Env:
+    Type: String
+
+Resources:  
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !Ref PackageBucketName
+        S3Key: !Ref TradingFunctionPackage
+      Runtime: python3.10
+      Description: lambda function  to retrieve latest trading  news
+      FunctionName: !Sub ${LambdaFunctionName}-${Env}
+      Handler: tradingNewsLambda.lambda_handler
+      MemorySize: 256
+      Role: !GetAtt LambdaIAMRole.Arn
+      Timeout: 30
+      Environment:
+        Variables:
+          TRADING_NEWS_API_URL: !Ref TradingAPIURL
+          TRADING_NEWS_API_KEY: !Ref TradingAPIKey
+
+  LambdaIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      Policies:
+        - PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${LambdaFunctionName}-${Env}:*
+          PolicyName: lambda
+  
+  ApiGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: REST API gateway
+      Description: RESTFULL API
+      EndpointConfiguration:
+        Types:
+          - EDGE
+      ApiKeySourceType: HEADER
+
+  ApiGatewayResourceNews:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:  !GetAtt ApiGateway.RootResourceId
+      PathPart: trading-news
+      RestApiId: !Ref ApiGateway
+
+  ApiGatewayGETMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: GET
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations
+          - LambdaArn: !GetAtt LambdaFunction.Arn
+      ResourceId: !Ref ApiGatewayResourceNews
+      RestApiId: !Ref ApiGateway
+  
+  ApiGatewayStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      DeploymentId: !Ref ApiGatewayDeployment
+      MethodSettings:
+        - HttpMethod: '*'
+          LoggingLevel: INFO
+          ResourcePath: /*
+          DataTraceEnabled: true
+      Description: Mock API Stage v0
+      RestApiId: !Ref ApiGateway
+      StageName: 'v0'
+
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: ApiGatewayGETMethod
+    Properties:
+      Description: Mock API Deployment
+      RestApiId: !Ref ApiGateway
+
+  LambdaApiGatewayInvoke:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt LambdaFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  ApiGatewayRoleArn:
+    Type: AWS::ApiGateway::Account
+    Properties: 
+      CloudWatchRoleArn: !GetAtt CloudWatchRole.Arn
+
+# IAM Role for API Gateway + CloudWatch Logging
+  CloudWatchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Action: 'sts:AssumeRole'
+          Effect: Allow
+          Principal:
+            Service: apigateway.amazonaws.com
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
+
+Outputs:
+  APIGWID:
+    Description: API gateway Id
+    Value: !Ref ApiGateway
