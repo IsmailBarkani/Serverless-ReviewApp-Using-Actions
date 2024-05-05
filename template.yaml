@@ -99,6 +99,11 @@ Resources:
     Type: AWS::ApiGateway::Stage
     Properties:
       DeploymentId: !Ref ApiGatewayDeployment
+      MethodSettings:
+        - HttpMethod: '*'
+          LoggingLevel: INFO
+          ResourcePath: /*
+          DataTraceEnabled: true
       Description: Mock API Stage v0
       RestApiId: !Ref ApiGateway
       StageName: 'v0'
